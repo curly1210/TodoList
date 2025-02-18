@@ -1,6 +1,7 @@
 import { useState } from "react";
 import "./Sidebar.css";
 import PropTypes from "prop-types";
+import { CATEGORY_ITEMS } from "../constants";
 
 const Sidebar = (props) => {
   const data = props.todoItem;
@@ -8,9 +9,10 @@ const Sidebar = (props) => {
   const [name, setName] = useState(data.name);
   const [isImportant, setIsImportant] = useState(data.isImportant);
   const [isCompleted, setIsCompleted] = useState(data.isCompleted);
+  const [category, setCategory] = useState(data.category);
 
   const handleSave = () => {
-    const newTodo = { ...data, name, isImportant, isCompleted };
+    const newTodo = { ...data, name, isImportant, isCompleted, category };
     props.handleTodoItemChange(newTodo);
     props.setShowSidebar(false);
   };
@@ -56,6 +58,24 @@ const Sidebar = (props) => {
             }}
           />
         </div>
+        <div className="sb-form-field">
+          <label htmlFor="sb-category">Category</label>
+          <select
+            id="sb-category"
+            value={category}
+            onChange={(e) => {
+              setCategory(e.target.value);
+            }}
+          >
+            {CATEGORY_ITEMS.map((category) => {
+              return (
+                <option key={category.id} value={category.id}>
+                  {category.label}
+                </option>
+              );
+            })}
+          </select>
+        </div>
       </form>
       <div className="sb-footer">
         <button onClick={handleSave}>Save</button>
@@ -72,6 +92,7 @@ Sidebar.propTypes = {
     name: PropTypes.string,
     isImportant: PropTypes.bool,
     isCompleted: PropTypes.bool,
+    category: PropTypes.string,
   },
 };
 

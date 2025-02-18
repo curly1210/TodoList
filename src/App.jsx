@@ -1,72 +1,39 @@
-import { useRef, useState } from "react";
+import { useMemo, useRef } from "react";
 import "./App.css";
 import TodoItem from "./components/TodoItem";
 import Sidebar from "./components/Sidebar";
 import FilterPanel from "./components/FilterPanel";
+import { useAppContext } from "./context/AppProvider";
 
 function App() {
-  const [todoList, setTodoList] = useState([
-    {
-      id: 1,
-      name: "Đi học thêm",
-      isImportant: false,
-      isCompleted: true,
-      isDeleted: false,
-    },
-    {
-      id: 2,
-      name: "Đi chợ",
-      isImportant: true,
-      isCompleted: false,
-      isDeleted: false,
-    },
-    {
-      id: 3,
-      name: "Đi ngủ",
-      isImportant: false,
-      isCompleted: false,
-      isDeleted: false,
-    },
-  ]);
-
-  const [selectedFilterId, setSelectedFilterId] = useState("all");
-
-  const [activeTodoItemId, setActiveTodoItemid] = useState();
-
-  const [showSidebar, setShowSidebar] = useState(false);
+  const {
+    selectedCategoryId,
+    todoList,
+    setTodoList,
+    searchText,
+    selectedFilterId,
+    activeTodoItemId,
+    showSidebar,
+    setShowSidebar,
+    handleCompleCheckboxChange,
+    handleTodoItemClick,
+    handleTodoItemChange,
+  } = useAppContext();
 
   const activeTodoItem = todoList.find((todo) => todo.id === activeTodoItemId);
 
   const inputRef = useRef();
 
-  const handleCompleCheckboxChange = (todoId) => {
-    const newTodoList = todoList.map((todo) => {
-      if (todo.id === todoId) {
-        return { ...todo, isCompleted: !todo.isCompleted };
+  const filterTodos = useMemo(() => {
+    return todoList.filter((todo) => {
+      if (!todo.name.includes(searchText)) {
+        return false;
       }
-      return todo;
-    });
-    setTodoList(newTodoList);
-  };
 
-  // console.log({ todoList });
-  const handleTodoItemClick = (todoId) => {
-    setShowSidebar(true);
-    setActiveTodoItemid(todoId);
-  };
-
-  const handleTodoItemChange = (newTodo) => {
-    const newTodoList = todoList.map((todo) => {
-      if (todo.id === newTodo.id) {
-        return newTodo;
+      if (selectedCategoryId && todo.category !== selectedCategoryId) {
+        return false;
       }
-      return todo;
-    });
-    setTodoList(newTodoList);
-  };
 
-  const filterTodos = todoList
-    .filter((todo) => {
       switch (selectedFilterId) {
         case "all":
           return true;
@@ -79,29 +46,14 @@ function App() {
         default:
           return true;
       }
-    })
-    .map((todo) => {
-      return (
-        <TodoItem
-          id={todo.id}
-          name={todo.name}
-          key={todo.id}
-          isImportant={todo.isImportant}
-          isCompleted={todo.isCompleted}
-          handleCompleCheckboxChange={handleCompleCheckboxChange}
-          handleTodoItemClick={handleTodoItemClick}
-        />
-      );
     });
+  }, [todoList, selectedFilterId, searchText, selectedCategoryId]);
 
   // console.log(todos);
 
   return (
     <div className="container">
-      <FilterPanel
-        selectedFilterId={selectedFilterId}
-        setSelectedFilterId={setSelectedFilterId}
-      />
+      <FilterPanel />
       <div className="main-content">
         <input
           ref={inputRef}
@@ -120,13 +72,28 @@ function App() {
                   isImportant: false,
                   isCompleted: false,
                   isDeleted: false,
+                  category: "personal",
                 },
               ]);
               inputRef.current.value = "";
             }
           }}
         />
-        <div>{filterTodos}</div>
+        <div>
+          {filterTodos.map((todo) => {
+            return (
+              <TodoItem
+                id={todo.id}
+                name={todo.name}
+                key={todo.id}
+                isImportant={todo.isImportant}
+                isCompleted={todo.isCompleted}
+                handleCompleCheckboxChange={handleCompleCheckboxChange}
+                handleTodoItemClick={handleTodoItemClick}
+              />
+            );
+          })}
+        </div>
         {showSidebar && (
           <Sidebar
             key={activeTodoItemId}
